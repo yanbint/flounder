@@ -21,7 +21,6 @@ class SkinModel(object):
     def __init__(self, skin_model = os.path.split(os.path.realpath(__file__))[0] + os.sep + "MODEL.csv"):
         self._skin_model = skin_model
         self._simple = np.array([])
-        self._result = []
         self.load_model()
 
     def load_model(self):
@@ -32,7 +31,17 @@ class SkinModel(object):
                 line = line[:-1]
                 s = line.split(';')
                 models.append([int(s[0]), int(s[1]), int(s[2])])
-        self.model = KMeans(n_clusters=3, random_state=0).fit(models)
+        self._simple = np.array(models)
+        self.model = KMeans(n_clusters=3, random_state=0).fit(self._simple)
+
+    def show(self):
+        fig = plt.figure()
+        color = ("red", "green", "blue")
+        ax= fig.add_subplot(111, projection='3d')
+        y_pred = KMeans(n_clusters=3, random_state=0).fit_predict(self._simple)
+        colors=np.array(color)[y_pred]
+        ax.scatter(self._simple[:, 0], self._simple[:, 1], self._simple[:, 2], c=colors)
+        plt.show()
 
 class SkinDetect(object):
     def __init__(self, skin_model, simple_num = 100):
@@ -64,13 +73,18 @@ class SkinDetect(object):
 
     def show_result(self):
         fig = plt.figure()
+        ax= fig.add_subplot(131, projection='3d')
+        ax.set_title("Origin image data:", fontsize = 12, loc = 'left')
+        ax.scatter(self._simple[:, 0], self._simple[:, 1], self._simple[:, 2], c="purple", marker='.')
+
         color = ("red", "green", "blue")
-        ax= fig.add_subplot(121, projection='3d')
+        ax= fig.add_subplot(132, projection='3d')
+        ax.set_title("Predict image data:", fontsize = 12, loc = 'left')
         colors = np.array(color)[self._result]
         ax.scatter(self._simple[:, 0], self._simple[:, 1], self._simple[:, 2], c=colors, marker='x')
         
         img = Image.open(self._image)
-        ax= fig.add_subplot(122)
+        ax= fig.add_subplot(133)
         ax.imshow(img)
         ax.set_title("Black: %d%%, White: %d%%, Yellow: %d%%" % (self.black, self.white, self.yellow), fontsize = 12, loc = 'left')
         plt.xticks([]), plt.yticks([])
@@ -81,6 +95,7 @@ class SkinDetect(object):
 
 if __name__=="__main__":
     mySkinModel = SkinModel()
+    #mySkinModel.show()
     mySkinDetect = SkinDetect(mySkinModel)
 
     for image in sys.argv[1:]:

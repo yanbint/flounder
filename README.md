@@ -1,3 +1,2 @@
 # flounder
-Detect colors with k-means
-
+Detect skin colors to beautify image.
